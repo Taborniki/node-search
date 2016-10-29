@@ -3,7 +3,7 @@ body {
 }
 
 .heading {
-    background-color: #f7f7f7;
+    background-color: white; /* #f7f7f7 */
     height: 120px;
 }
 
