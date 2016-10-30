@@ -1,6 +1,7 @@
 function Node (parentNode, iconUrl, title) {
     this.parentNode = parentNode;
     this.iconUrl = iconUrl;
+    this.backgroundUrl = 'images/nodes/background.png';
     this.title = title;
     this.visual = this.createVisual();
     this.childNodes = [];
@@ -19,41 +20,75 @@ Node.prototype.addChild = function(childNode) {
 // creates the visual html node
 Node.prototype.createVisual = function() {
 
+    var container = new createjs.Container();
+
     // NEED icon inladen en resizen
     // NEED schaduwig rondje inladen
     var image = new Image();
     image.src = this.iconUrl;
-    var bitmap = new createjs.Bitmap(image);
+    var icon = new createjs.Bitmap(image);
+    image = new Image();
+    image.src = this.backgroundUrl;
+    var background = new createjs.Bitmap(image);
+    container.addChild(background);
+    container.addChild(icon);
 
-    bitmap.regX = bitmap.image.width / 2;
-    bitmap.regY = bitmap.image.height / 2;
-    bitmap.scaleX = bitmap.scaleY = bitmap.scale = 0.8;
+    // TODO nodig?
+    //$(icon.image).on('load', function() {
+    //});
+    var targetDimensions = 40;
+    var currentDimensions = Math.max(icon.image.height, icon.image.width);
+    icon.scaleX = targetDimensions/currentDimensions;
+    icon.scaleY = targetDimensions/currentDimensions;
 
-    // shadow
-    bitmap.shadow = new createjs.Shadow("#0094FF", 0,0, 0);
+    // move logo to center of backgrounds
+    // (container size - logo size)/2
+    var contSize = container.getBounds();
+    icon.x = (contSize.width - icon.image.width*icon.scaleX)/2;
+    icon.y = (contSize.height - icon.image.height*icon.scaleY)/2;
+
+    container.regX = background.image.width / 2;
+    container.regY = background.image.height / 2;
+    container.scaleX = container.scaleY = container.scale = 0.8;
+
+    // shadow, no offsets, 0 blur (= invisible)
+    background.shadow = new createjs.Shadow("#0094FF", 0, 0, 0);
 
     // hover animation
-    bitmap.on("mouseover", function (evt) {
+    container.on("rollover", function (evt) {
         // enlarge
         createjs.Tween.get(this, {loop: false})
             .to({scaleX: 1, scaleY: 1}, 200, createjs.Ease.quartInOut);
         // add shadow
-        createjs.Tween.get(this.shadow, {loop:false})
+        createjs.Tween.get(background.shadow, {loop:false})
             .to({blur:15}, 200, createjs.Ease.quartInOut);
 
 
         update = true;
     });
-    bitmap.on("rollout", function (evt) {
+    container.on("rollout", function (evt) {
         // make smaller
         var tween = createjs.Tween.get(this, {loop: false})
             .to({scaleX: 0.8, scaleY: 0.8}, 100, createjs.Ease.quartInOut);
         // remove shadow
-        createjs.Tween.get(this.shadow, {loop:false})
-            .to({blur:0}, 200, createjs.Ease.quartInOut);    
+        createjs.Tween.get(background.shadow, {loop:false})
+            .to({blur:0}, 200, createjs.Ease.quartInOut);
 
         update = true;
     });
 
-    return bitmap;
+    return container;
+};
+
+// measures the distance to an other node
+Node.prototype.distance = function(otherNode) {
+    return Math.sqrt(Math.abs(this.visual.x - otherNode.visual.x)^2 + Math.abs(this.visual.y - otherNode.visual.y)^2);
+};
+
+// measures the angle between the connecting line with an other node and the horizontal reference
+Node.prototype.angle = function(otherNode) {
+    var yDiff = this.visual.y - otherNode.visual.y;
+    var xDiff = this.visual.x - otherNode.visual.x;
+    var angleRad = Math.atan(yDiff/xDiff);
+    return angleRad * 180 / Math.PI;
 };
