@@ -21,9 +21,10 @@ function init() {
     stage.enableMouseOver(10);
     stage.mouseMoveOutside = true; // keep tracking the mouse even when it leaves the canvas
 
-
     createTestTree();
     drawTree(rootNode);
+
+    // ticker
     createjs.Ticker.addEventListener("tick", tick);
 }
 
@@ -38,7 +39,7 @@ function createTestTree() {
     var wikiNode2 = new Node(rootNode, 'images/nodes/wiki.ico','nazi germany');
 
     // 1.1.1
-    var wikiNode3 = new Node(wikiNode, 'images/nodes/wiki.ico','first wirld war');
+    var wikiNode3 = new Node(wikiNode, 'images/nodes/wiki.ico','first world war');
 
     // 1.1.2
     var bbcNode = new Node(wikiNode, 'images/nodes/asana.ico', 'second world war');
@@ -53,11 +54,11 @@ function drawTree (node) {
     var posY;
 
     // in pixels
-    var HORIZONTAL_NODE_SPACING = 120;
+    var HORIZONTAL_NODE_SPACING = 300;
     var VERTICAL_NODE_SPACING = 120;
 
     if(node.parentNode == 'none') {
-        node.visual.x = 400;
+        node.visual.x = 600;
         node.visual.y = 50;
     }
     else {
@@ -85,6 +86,10 @@ function drawTree (node) {
 
     // add node to canvas NEED
     stage.addChild(node.visual);
+
+    // add text to node
+    var nodeTitle = new NodeTitle(node);
+    stage.addChild(nodeTitle.visual);
 
     // draw the child nodes
     for(var i=0; i<node.childNodes.length; i++) {
