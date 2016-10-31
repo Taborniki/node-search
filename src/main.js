@@ -29,22 +29,22 @@ function init() {
 
 function createTestTree() {
     // root node 0.1
-    rootNode = new Node('none','images/nodes/google.png','world war II');
+    rootNode = new Node('none','images/nodes/google.ico','world war II');
 
     // 1.1
-    var wikiNode = new Node(rootNode, 'images/nodes/wiki.png','second world war');
+    var wikiNode = new Node(rootNode, 'images/nodes/wiki.ico','second world war');
 
     // 1.2
-    var wikiNode2 = new Node(rootNode, 'images/nodes/wiki.png','nazi germany');
+    var wikiNode2 = new Node(rootNode, 'images/nodes/wiki.ico','nazi germany');
 
     // 1.1.1
-    var wikiNode3 = new Node(wikiNode, 'images/nodes/wiki.png','first wirld war');
+    var wikiNode3 = new Node(wikiNode, 'images/nodes/wiki.ico','first wirld war');
 
     // 1.1.2
-    var bbcNode = new Node(wikiNode, 'images/nodes/bbc.png', 'second world war');
+    var bbcNode = new Node(wikiNode, 'images/nodes/asana.ico', 'second world war');
 
     // 1.1.2.1
-    var bbcNode2 = new Node(bbcNode, 'images/nodes/bbc.png', 'cold war');
+    var bbcNode2 = new Node(bbcNode, 'images/nodes/bbc.ico', 'cold war');
 }
 
 function drawTree (node) {
