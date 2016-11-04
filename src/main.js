@@ -58,24 +58,26 @@ function drawTree (node) {
     var VERTICAL_NODE_SPACING = 120;
 
     if(node.parentNode == 'none') {
-        node.visual.x = 600;
-        node.visual.y = 50;
+        node.setLocation(600,50);
     }
     else {
         numSiblings = node.parentNode.childNodes.length-1;
+        var xToSet;
 
         if(numSiblings === 0) {
             // right beneath parent node
-            node.visual.x = node.parentNode.visual.x;
+            xToSet = node.parentNode.visual.x;
         }
         else {
             // not straight below parent node
             var childRank = node.parentNode.childNodes.indexOf(node);
-            node.visual.x = node.parentNode.visual.x - HORIZONTAL_NODE_SPACING/2*numSiblings + childRank*HORIZONTAL_NODE_SPACING;
+            xToSet = node.parentNode.visual.x - HORIZONTAL_NODE_SPACING/2*numSiblings + childRank*HORIZONTAL_NODE_SPACING;
         }
 
         // below parent node
-        node.visual.y = node.parentNode.visual.y + VERTICAL_NODE_SPACING;
+        var yToSet = node.parentNode.visual.y + VERTICAL_NODE_SPACING;
+
+        node.setLocation(xToSet,yToSet);
 
         // draw connecting rod
         var rod = new Rod(node.parentNode, node);
@@ -84,8 +86,11 @@ function drawTree (node) {
         stage.setChildIndex(rod.visual,0);
     }
 
-    // add node to canvas NEED
+    // add node to canvas
     stage.addChild(node.visual);
+
+    // add menu to node
+    stage.addChild(node.contextMenu.visual);
 
     // add text to node
     var nodeTitle = new NodeTitle(node);

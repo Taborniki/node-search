@@ -7,7 +7,7 @@ function NodeTitle (hostNode) {
 NodeTitle.prototype.createVisual = function() {
 
     var visual = new createjs.Text(this.hostNode.title, "20px Arial", "#545454");
-    visual.x = this.hostNode.visual.x + 30;
+    visual.x = this.hostNode.visual.x + 40;
     visual.y = this.hostNode.visual.y - 12;
 
     return visual;

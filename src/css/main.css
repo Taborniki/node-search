@@ -4,7 +4,7 @@ body {
 
 .heading {
     background-color: white; /* #f7f7f7 */
-    height: 120px;
+    height: 80px;
 }
 
 .heading img {
@@ -19,8 +19,9 @@ body {
     float:left;
     width:75%;
     overflow:hidden;
-    margin-left: 25px;
+    margin-left: 40px;
     margin-top: 15px;
+    margin-bottom: 15px;
     color: rgb(84, 84, 84);
     font-size: 60;
 }

@@ -1,3 +1,6 @@
+var MENU_OFFSET_X = -70;
+var MENU_OFFSET_Y = -15; // NEED moet gewoon het centrum zijn
+
 function Node (parentNode, iconUrl, title) {
     this.parentNode = parentNode;
     this.iconUrl = iconUrl;
@@ -5,6 +8,7 @@ function Node (parentNode, iconUrl, title) {
     this.title = title;
     this.visual = this.createVisual();
     this.childNodes = [];
+    this.contextMenu = new ContextMenu(this);
 
     // add this node as a child to the parentNode
     if(parentNode != 'none') {
@@ -22,8 +26,6 @@ Node.prototype.createVisual = function() {
 
     var container = new createjs.Container();
 
-    // NEED icon inladen en resizen
-    // NEED schaduwig rondje inladen
     var image = new Image();
     image.src = this.iconUrl;
     var icon = new createjs.Bitmap(image);
@@ -54,6 +56,8 @@ Node.prototype.createVisual = function() {
     // shadow, no offsets, 0 blur (= invisible)
     background.shadow = new createjs.Shadow("#0094FF", 0, 0, 0);
 
+    var backupThis = this;
+
     // hover animation
     container.on("rollover", function (evt) {
         // enlarge
@@ -63,9 +67,12 @@ Node.prototype.createVisual = function() {
         createjs.Tween.get(background.shadow, {loop:false})
             .to({blur:15}, 200, createjs.Ease.quartInOut);
 
+        // launch context menu
+        backupThis.contextMenu.show();
 
         update = true;
     });
+
     container.on("rollout", function (evt) {
         // make smaller
         var tween = createjs.Tween.get(this, {loop: false})
@@ -74,10 +81,21 @@ Node.prototype.createVisual = function() {
         createjs.Tween.get(background.shadow, {loop:false})
             .to({blur:0}, 200, createjs.Ease.quartInOut);
 
+        // hide context menu
+        backupThis.contextMenu.hide();
+
         update = true;
     });
 
     return container;
+};
+
+// sets the location of the node (x,y)
+Node.prototype.setLocation = function(x,y) {
+    this.visual.x = x;
+    this.visual.y = y;
+
+    this.contextMenu.setLocation(x + MENU_OFFSET_X, y + MENU_OFFSET_Y);
 };
 
 // measures the distance to an other node
