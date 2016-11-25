@@ -1,5 +1,6 @@
-var MENU_OFFSET_X = -70;
+var MENU_OFFSET_X = -85;
 var MENU_OFFSET_Y = -15; // NEED moet gewoon het centrum zijn
+var ROLLOUT_DELAY_TIME = 200; // in milliseconds
 
 function Node (parentNode, iconUrl, title) {
     this.parentNode = parentNode;
@@ -9,6 +10,7 @@ function Node (parentNode, iconUrl, title) {
     this.visual = this.createVisual();
     this.childNodes = [];
     this.contextMenu = new ContextMenu(this);
+    this.noRollout = false;
 
     // add this node as a child to the parentNode
     if(parentNode != 'none') {
@@ -73,21 +75,38 @@ Node.prototype.createVisual = function() {
         update = true;
     });
 
+    // exit hoover
     container.on("rollout", function (evt) {
-        // make smaller
-        var tween = createjs.Tween.get(this, {loop: false})
-            .to({scaleX: 0.8, scaleY: 0.8}, 100, createjs.Ease.quartInOut);
-        // remove shadow
-        createjs.Tween.get(background.shadow, {loop:false})
-            .to({blur:0}, 200, createjs.Ease.quartInOut);
-
-        // hide context menu
-        backupThis.contextMenu.hide();
-
-        update = true;
+        backupThis.removeFocusAnimation();
     });
 
     return container;
+};
+
+// animates the loss of focus
+Node.prototype.removeFocusAnimation = function() {
+    var backupThis = this;
+
+    // delay rollout
+    setTimeout(function(){
+        // other objects have ROLLOUT_DELAY_TIME milliseconds to set the noRollout using interruptRollout()
+        if(!backupThis.noRollout) {
+            // make smaller
+            var tween = createjs.Tween.get(backupThis, {loop: false})
+                .to({scaleX: 0.8, scaleY: 0.8}, 100, createjs.Ease.quartInOut);
+
+            var background = backupThis.visual.children[0];
+
+            // remove shadow
+            createjs.Tween.get(background.shadow, {loop:false})
+                .to({blur:0}, 200, createjs.Ease.quartInOut);
+
+            // hide context menu
+            backupThis.contextMenu.hide();
+
+            update = true;
+        }
+    }, ROLLOUT_DELAY_TIME);
 };
 
 // sets the location of the node (x,y)
@@ -97,6 +116,29 @@ Node.prototype.setLocation = function(x,y) {
 
     this.contextMenu.setLocation(x + MENU_OFFSET_X, y + MENU_OFFSET_Y);
 };
+// interrupts the rollout event
+Node.prototype.interruptRollout = function() {
+    this.noRollout = true;
+};
+
+// launches a rollout event
+Node.prototype.launchRollout = function() {
+    this.noRollout = false;
+    this.removeFocusAnimation();
+};
+
+// collapses all the child nodes and their children...
+Node.prototype.collapseChildren = function(nodeToCollapseTo) {
+    // will go recursively down the tree
+    for(var i=0; i<this.childNodes.length; i++) {
+        this.childNodes[i].collapseChildren(nodeToCollapseTo);
+    }
+    
+    // animate posisiton of the current node to the position of the nodeToCollapseTo
+    createjs.Tween.get(this.visual, {loop: false}).to({x : nodeToCollapseTo.visual.x, y : nodeToCollapseTo.visual.y}, 100);
+
+    // NEED disable menu + set z-index to lower than nodeToCollapseTo + remeber old position to go back later + delete rods
+}
 
 // measures the distance to an other node
 Node.prototype.distance = function(otherNode) {

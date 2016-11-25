@@ -26,6 +26,7 @@ function init() {
 
     // ticker
     createjs.Ticker.addEventListener("tick", tick);
+    createjs.Ticker.framerate = 60;
 }
 
 function createTestTree() {
@@ -58,7 +59,8 @@ function drawTree (node) {
     var VERTICAL_NODE_SPACING = 120;
 
     if(node.parentNode == 'none') {
-        node.setLocation(600,50);
+        // location of top node (x,y)
+        node.setLocation(600,100);
     }
     else {
         numSiblings = node.parentNode.childNodes.length-1;
