@@ -43,7 +43,7 @@ function createTestTree() {
     var wikiNode3 = new Node(wikiNode, 'images/nodes/wiki.ico','first world war');
 
     // 1.1.2
-    var bbcNode = new Node(wikiNode, 'images/nodes/asana.ico', 'second world war');
+    var bbcNode = new Node(wikiNode, 'images/nodes/asana.ico', '2nd world war');
 
     // 1.1.2.1
     var bbcNode2 = new Node(bbcNode, 'images/nodes/bbc.ico', 'cold war');

@@ -1,6 +1,8 @@
 var MENU_OFFSET_X = -85;
 var MENU_OFFSET_Y = -15; // NEED moet gewoon het centrum zijn
 var ROLLOUT_DELAY_TIME = 200; // in milliseconds
+var COLLAPSE_CTR_POS_X = 60;
+var COLLAPSE_CTR_POS_Y = 52;
 
 function Node (parentNode, iconUrl, title) {
     this.parentNode = parentNode;
@@ -34,8 +36,26 @@ Node.prototype.createVisual = function() {
     image = new Image();
     image.src = this.backgroundUrl;
     var background = new createjs.Bitmap(image);
+    // collapse counter
+    image = new Image();
+    image.src = 'images/nodes/collapsecounter.png';
+    var blueCircle = new createjs.Bitmap(image);
+    var collapseCounterContainer = new createjs.Container();
+    collapseCounterContainer.addChild(blueCircle);
+    var collapseCounterText = new createjs.Text(3, "20px Arial", "white"); // NEED 1 moet echte count worden
+    collapseCounterText.x = 7;
+    collapseCounterText.y = 2;
+    collapseCounterContainer.addChild(collapseCounterText);
+    collapseCounterContainer.x = COLLAPSE_CTR_POS_X;
+    collapseCounterContainer.y = COLLAPSE_CTR_POS_Y;
+    collapseCounterContainer.visible = false;
+    container.addChild(collapseCounterContainer);
+    container.setChildIndex(collapseCounterContainer,2); // z-index to top, z-index can't be larger then container.children.length-1
+
     container.addChild(background);
+    container.setChildIndex(background,0);
     container.addChild(icon);
+    container.setChildIndex(icon,1);
 
     // TODO nodig?
     //$(icon.image).on('load', function() {
@@ -92,7 +112,7 @@ Node.prototype.removeFocusAnimation = function() {
         // other objects have ROLLOUT_DELAY_TIME milliseconds to set the noRollout using interruptRollout()
         if(!backupThis.noRollout) {
             // make smaller
-            var tween = createjs.Tween.get(backupThis, {loop: false})
+            var tween = createjs.Tween.get(backupThis.visual, {loop: false})
                 .to({scaleX: 0.8, scaleY: 0.8}, 100, createjs.Ease.quartInOut);
 
             var background = backupThis.visual.children[0];
@@ -133,11 +153,28 @@ Node.prototype.collapseChildren = function(nodeToCollapseTo) {
     for(var i=0; i<this.childNodes.length; i++) {
         this.childNodes[i].collapseChildren(nodeToCollapseTo);
     }
-    
+
     // animate posisiton of the current node to the position of the nodeToCollapseTo
     createjs.Tween.get(this.visual, {loop: false}).to({x : nodeToCollapseTo.visual.x, y : nodeToCollapseTo.visual.y}, 100);
 
-    // NEED disable menu + set z-index to lower than nodeToCollapseTo + remeber old position to go back later + delete rods
+    // set collapseCounter visible
+    var numCollapsed = this.getNumChildrenRecursive();
+    if (numCollapsed > 0) {
+        // set label value NEED
+        this.visual.children[2].visible = true; // show label
+    }
+
+
+    // NEED disable menu + set z-index to lower than nodeToCollapseTo + remeber old position to go back later + delete rods + boolean of hij de collapsencounter moet tonen
+}
+
+// gets the total children and grandchildren and grand grand .... recursively
+Node.prototype.getNumChildrenRecursive = function() {
+    var count = 0;
+    for(var i=0; i<this.childNodes.length; i++) {
+        count += this.childNodes[i].getNumChildrenRecursive() + 1; // +1 is for the examined node itself
+    }
+    return count;
 }
 
 // measures the distance to an other node
