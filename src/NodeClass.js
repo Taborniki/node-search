@@ -1,5 +1,3 @@
-var MENU_OFFSET_X = -85;
-var MENU_OFFSET_Y = -15; // NEED moet gewoon het centrum zijn
 var ROLLOUT_DELAY_TIME = 200; // in milliseconds
 var COLLAPSE_CTR_POS_X = 60;
 var COLLAPSE_CTR_POS_Y = 52;
@@ -12,11 +10,31 @@ function Node (parentNode, iconUrl, title) {
     this.visual = this.createVisual();
     this.childNodes = [];
     this.contextMenu = new ContextMenu(this);
+    this.titleText = new NodeTitle(this);
     this.noRollout = false;
+    this.stage = {};
+    this.collapsed = false;
+    this.hasParentNode = (parentNode !== 'none');
+    console.log(this.hasParentNode);
+    if (this.hasParentNode)
+        parentNode.addChild(this); // add as a child to the parent node
+        this.rod = new Rod(this.parentNode, this); // draw connecting rod
+}
 
-    // add this node as a child to the parentNode
-    if(parentNode != 'none') {
-        parentNode.addChild(this);
+// assign the stage object to the node
+Node.prototype.assignStage = function(stageObject) {
+    // save stage object for later use
+    this.stage = stageObject;
+    // add node to stage
+    stageObject.addChild(this.visual);
+    // add menu to node
+    stageObject.addChild(this.contextMenu.visual);
+    // add text to node
+    stageObject.addChild(this.titleText.visual);
+    // create connecting rod with hostNode if it exists
+    if (this.hasParentNode) {
+        stageObject.addChild(this.rod.visual);
+        stageObject.setChildIndex(this.rod.visual,0); // send to back (z-index)
     }
 }
 
@@ -42,7 +60,7 @@ Node.prototype.createVisual = function() {
     var blueCircle = new createjs.Bitmap(image);
     var collapseCounterContainer = new createjs.Container();
     collapseCounterContainer.addChild(blueCircle);
-    var collapseCounterText = new createjs.Text(3, "20px Arial", "white"); // NEED 1 moet echte count worden
+    var collapseCounterText = new createjs.Text(1, "20px Arial", "white");
     collapseCounterText.x = 7;
     collapseCounterText.y = 2;
     collapseCounterContainer.addChild(collapseCounterText);
@@ -134,7 +152,10 @@ Node.prototype.setLocation = function(x,y) {
     this.visual.x = x;
     this.visual.y = y;
 
-    this.contextMenu.setLocation(x + MENU_OFFSET_X, y + MENU_OFFSET_Y);
+    this.contextMenu.setLocation(x,y);
+    this.titleText.setLocation(x,y);
+    if (this.hasParentNode)
+        this.rod.draw();
 };
 // interrupts the rollout event
 Node.prototype.interruptRollout = function() {
@@ -148,10 +169,10 @@ Node.prototype.launchRollout = function() {
 };
 
 // collapses all the child nodes and their children...
-Node.prototype.collapseChildren = function(nodeToCollapseTo) {
+Node.prototype.collapseChildren = function(nodeToCollapseTo, isCollapseStart) {
     // will go recursively down the tree
     for(var i=0; i<this.childNodes.length; i++) {
-        this.childNodes[i].collapseChildren(nodeToCollapseTo);
+        this.childNodes[i].collapseChildren(nodeToCollapseTo, false);
     }
 
     // animate posisiton of the current node to the position of the nodeToCollapseTo
@@ -159,13 +180,27 @@ Node.prototype.collapseChildren = function(nodeToCollapseTo) {
 
     // set collapseCounter visible
     var numCollapsed = this.getNumChildrenRecursive();
-    if (numCollapsed > 0) {
-        // set label value NEED
+    if (isCollapseStart && numCollapsed > 0) {
+        this.visual.children[2].children[1].text = numCollapsed;
         this.visual.children[2].visible = true; // show label
+        // set z-index to top
+        this.stage.setChildIndex(this.visual,this.stage.children.length-1);
+
+        // set collapsed var to true
+        // this is needed to stop decollapsing when a higher node is decollapsed
+        this.collapsed = true;
+    }
+    else {
+        // hide label if it was already shown due to earlier collapsing
+        this.visual.children[2].visible = false;
+        // NEED this.visible functie of zo die dat netjes doet
+        // set rod invisible
+        this.rod.visual.visible = false;
+        // set title text invisible
+        this.titleText.visual.visible = false;
     }
 
-
-    // NEED disable menu + set z-index to lower than nodeToCollapseTo + remeber old position to go back later + delete rods + boolean of hij de collapsencounter moet tonen
+    // NEED remember old position to go back later -> NIET NODIG: je kunt gewoon opnieuw draw doen -> drawTree functie verplaatsen naar node ipv in main js
 }
 
 // gets the total children and grandchildren and grand grand .... recursively

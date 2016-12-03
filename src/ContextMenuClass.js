@@ -1,4 +1,7 @@
-var ROTATION_ANGLE = 30;
+var ROTATION_ANGLE_MENU = 30;
+// TODO moeten gewoon midden van node zijn
+var X_OFFSET_MENU = -85;
+var Y_OFFSET_MENU = -15;
 
 function ContextMenu (hostNode) {
     this.hostNode = hostNode;
@@ -38,7 +41,7 @@ ContextMenu.prototype.createVisual = function(menuItems) {
 
         bitmap.on("click", function(evt) {
             // NEED different functions voor different children
-            backupThis.hostNode.collapseChildren(backupThis.hostNode);
+            backupThis.hostNode.collapseChildren(backupThis.hostNode, true);
         });
 
         container.addChild(bitmap);
@@ -49,8 +52,8 @@ ContextMenu.prototype.createVisual = function(menuItems) {
 
 // sets the location of the node (x,y)
 ContextMenu.prototype.setLocation = function(x,y) {
-    this.visual.x = x;
-    this.visual.y = y;
+    this.visual.x = x + X_OFFSET_MENU;
+    this.visual.y = y + Y_OFFSET_MENU;
 };
 
 ContextMenu.prototype.show = function() {
@@ -60,7 +63,7 @@ ContextMenu.prototype.show = function() {
         child.visible = true;
 
         // animate
-        createjs.Tween.get(child, {loop: false}).to({rotation: i*ROTATION_ANGLE}, 100);
+        createjs.Tween.get(child, {loop: false}).to({rotation: i*ROTATION_ANGLE_MENU}, 100);
     }
 };
 

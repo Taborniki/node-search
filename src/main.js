@@ -80,23 +80,10 @@ function drawTree (node) {
         var yToSet = node.parentNode.visual.y + VERTICAL_NODE_SPACING;
 
         node.setLocation(xToSet,yToSet);
-
-        // draw connecting rod
-        var rod = new Rod(node.parentNode, node);
-        stage.addChild(rod.visual);
-        // send to back (z-index)
-        stage.setChildIndex(rod.visual,0);
     }
 
     // add node to canvas
-    stage.addChild(node.visual);
-
-    // add menu to node
-    stage.addChild(node.contextMenu.visual);
-
-    // add text to node
-    var nodeTitle = new NodeTitle(node);
-    stage.addChild(nodeTitle.visual);
+    node.assignStage(stage);
 
     // draw the child nodes
     for(var i=0; i<node.childNodes.length; i++) {
