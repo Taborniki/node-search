@@ -1,6 +1,8 @@
 var ROLLOUT_DELAY_TIME = 200; // in milliseconds
 var COLLAPSE_CTR_POS_X = 60;
 var COLLAPSE_CTR_POS_Y = 52;
+var DEFAULT_X_NODE_SPACING = 250;
+var DEFAULT_Y_NODE_SPACING = 120;
 
 function Node (parentNode, iconUrl, title) {
     this.parentNode = parentNode;
@@ -15,9 +17,10 @@ function Node (parentNode, iconUrl, title) {
     this.stage = {};
     this.collapsed = false;
     this.hasParentNode = (parentNode !== 'none');
-    if (this.hasParentNode)
+    if (this.hasParentNode) {
         parentNode.addChild(this); // add as a child to the parent node
         this.rod = new Rod(this.parentNode, this); // draw connecting rod
+    }
 }
 
 // assign the stage object to the node
@@ -35,12 +38,27 @@ Node.prototype.assignStage = function(stageObject) {
         stageObject.addChild(this.rod.visual);
         stageObject.setChildIndex(this.rod.visual,0); // send to back (z-index)
     }
+    // add childNodes to canvas
+    for (var i=0; i<this.childNodes.length; i++)
+        this.childNodes[i].assignStage(stageObject);
 }
 
 // adds a child node
 Node.prototype.addChild = function(childNode) {
     this.childNodes.push(childNode);
 };
+
+// removes a child node
+Node.prototype.removeChild = function(nodeToRemove) {
+    for(var i=0; i<this.childNodes.length; i++) {
+		if (this.childNodes[i] == nodeToRemove) {
+			// remove item from subTrees
+			this.childNodes.splice(i,1);
+			// NEED childNodes[i].delete() of zo zodat hij ook visueel weg gaat
+            this.setLocation(this.visual.x, this.visual.y); // force redrawing of childNodes
+		}
+	}
+}
 
 // creates the visual html node
 Node.prototype.createVisual = function() {
@@ -153,6 +171,14 @@ Node.prototype.setLocation = function(x,y) {
 
     this.contextMenu.setLocation(x,y);
     this.titleText.setLocation(x,y);
+
+    // set location of subnodes
+    var box = this.getVisualBox(1);
+    for (var i=0; i<this.childNodes.length; i++) {
+        this.childNodes[i].setLocation(x + box.positions[i].x, y + box.positions[i].y)
+    }
+
+    // rod must be redrawing
     if (this.hasParentNode)
         this.rod.draw();
 };
@@ -222,4 +248,35 @@ Node.prototype.angle = function(otherNode) {
     var xDiff = this.visual.x - otherNode.visual.x;
     var angleRad = Math.atan(yDiff/xDiff);
     return angleRad * 180 / Math.PI;
+};
+
+// returns the title
+Node.prototype.getTitle = function() {
+    return this.title;
+};
+
+Node.prototype.getVisualBox = function(reduceFactor) {
+    var verticalBoxSize = DEFAULT_Y_NODE_SPACING*reduceFactor; // add space for the current node
+    var horizontalBoxSize = (this.childNodes.length!=0)*(this.childNodes.length-1)*DEFAULT_X_NODE_SPACING*reduceFactor; // add space between the boxes of the subnodes
+    var positions = [];
+
+    // find outer borders of the box
+    for(var i=0; i < this.childNodes.length; i++) {
+        var childNodeBox = this.childNodes[i].getVisualBox(reduceFactor);
+        verticalBoxSize = Math.max(verticalBoxSize, childNodeBox.yTotal); // looking for the largest subbox
+        horizontalBoxSize += childNodeBox.xTotal;
+    }
+
+    // find individual positions TODO is rounding needed?
+    var curXPos = - horizontalBoxSize/2; // start drawing nodes left of referene top node
+    var prevChildNodeBoxX = 0;
+    for(var i=0; i < this.childNodes.length; i++) {
+        var childNodeBox = this.childNodes[i].getVisualBox(reduceFactor);
+        curXPos += childNodeBox.xTotal/2;
+        curXPos += (i!=0)*DEFAULT_X_NODE_SPACING*reduceFactor;
+        curXPos += (i!=0)*prevChildNodeBoxX/2;
+        prevChildNodeBoxX = childNodeBox.xTotal;
+        positions.push({x : curXPos, y : DEFAULT_Y_NODE_SPACING*reduceFactor});
+    }
+    return {xTotal : horizontalBoxSize, yTotal : verticalBoxSize, positions : positions};
 };

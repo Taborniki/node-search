@@ -1,7 +1,7 @@
 
 // constructor
-function TabManager (masterTree) {
-	this.masterTree = masterTree;
+function TabManager (masterNode) {
+	this.masterNode = masterNode;
 }
 
 // open a webpage in a new page with a hook attached
@@ -22,5 +22,6 @@ TabManager.prototype.initMessageListener = function() {
 	chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		console.log(message);
 		console.log(sender);
+		// NEED iets mee doen
 	});
 };
