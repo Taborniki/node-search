@@ -15,7 +15,6 @@ function Node (parentNode, iconUrl, title) {
     this.stage = {};
     this.collapsed = false;
     this.hasParentNode = (parentNode !== 'none');
-    console.log(this.hasParentNode);
     if (this.hasParentNode)
         parentNode.addChild(this); // add as a child to the parent node
         this.rod = new Rod(this.parentNode, this); // draw connecting rod

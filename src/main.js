@@ -8,6 +8,30 @@ var rootNode;
 
 $(document).ready(function() {
     init();
+
+    // NEED test
+    $('#btnTestTab').on('click', function() {
+        console.log('clicked btn');
+        chrome.tabs.create({ url: 'http://terra.snellman.net' }, function(tab) {
+            // callback function
+            console.log(tab.id);
+
+            // wait for tab to load
+            chrome.tabs.onUpdated.addListener(function(tabId , info) {
+                if (tabId == tab.id && info.status == "complete") {
+                    // send message to hook link tags
+                    chrome.tabs.sendMessage(tab.id, 'attach-hook');
+                }
+            });
+        });
+    });
+
+    // NEED test
+    // listen for incoming messages
+    chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    	console.log(message);
+        console.log(sender);
+    });
 });
 
 function init() {
