@@ -30,22 +30,16 @@ function init() {
     // NEED moet google worden + subNode(s) verwijderen
     rootNode = new Node('none','images/nodes/google.ico','Terra Home','http://terra.snellman.net');
     var subNode1 = new Node(rootNode, 'images/nodes/wiki.ico','Help','http://terra.snellman.net/help');
-    var asanaNode1 = new Node(rootNode, 'images/nodes/asana.ico', 'Rating','http://terra.snellman.net/rating');
-    var bbcNode2 = new Node(subNode1, 'images/nodes/bbc.ico', 'cold war','');
-    bbcNode2 = new Node(subNode1, 'images/nodes/bbc.ico', 'cold war','');
-    bbcNode2 = new Node(asanaNode1, 'images/nodes/bbc.ico', 'cold war','');
-    bbcNode2 = new Node(asanaNode1, 'images/nodes/bbc.ico', 'cold war','');
-    bbcNode2 = new Node(asanaNode1, 'images/nodes/bbc.ico', 'cold war','');
     rootNode.setLocation(600,100); // NEED dynamisch tov grootte canvas
     rootNode.assignStage(stage); // add node to canvas
-
-    // ticker
-    createjs.Ticker.addEventListener("tick", tick);
-    createjs.Ticker.framerate = 60;
 
     // create TabManager
     tabManager = new TabManager(rootNode);
     tabManager.initMessageListener();
+
+    // ticker
+    createjs.Ticker.addEventListener("tick", tick);
+    createjs.Ticker.framerate = 60;
 }
 
 function tick(event) {

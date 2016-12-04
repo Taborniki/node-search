@@ -2,6 +2,7 @@
 // constructor
 function TabManager (masterNode) {
 	this.masterNode = masterNode;
+	masterNode.setTabManager(this);
 }
 
 // open a webpage in a new page with a hook attached

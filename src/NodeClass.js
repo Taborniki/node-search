@@ -2,11 +2,12 @@ var ROLLOUT_DELAY_TIME = 200; // in milliseconds
 var COLLAPSE_CTR_POS_X = 60;
 var COLLAPSE_CTR_POS_Y = 52;
 var DEFAULT_X_NODE_SPACING = 250;
-var DEFAULT_Y_NODE_SPACING = 120;
+var DEFAULT_Y_NODE_SPACING = 130;
 
-function Node (parentNode, iconUrl, title) {
+function Node (parentNode, iconUrl, title, pageUrl) {
     this.parentNode = parentNode;
     this.iconUrl = iconUrl;
+    this.pageUrl = pageUrl;
     this.backgroundUrl = 'images/nodes/background.png';
     this.title = title;
     this.visual = this.createVisual();
@@ -71,6 +72,7 @@ Node.prototype.createVisual = function() {
     image = new Image();
     image.src = this.backgroundUrl;
     var background = new createjs.Bitmap(image);
+
     // collapse counter
     image = new Image();
     image.src = 'images/nodes/collapsecounter.png';
@@ -133,6 +135,11 @@ Node.prototype.createVisual = function() {
     // exit hoover
     container.on("rollout", function (evt) {
         backupThis.removeFocusAnimation();
+    });
+
+    // open page on click
+    container.on("click", function(evt) {
+        backupThis.tabManager.openPage(backupThis.pageUrl);
     });
 
     return container;
@@ -280,3 +287,9 @@ Node.prototype.getVisualBox = function(reduceFactor) {
     }
     return {xTotal : horizontalBoxSize, yTotal : verticalBoxSize, positions : positions};
 };
+
+Node.prototype.setTabManager = function(tabManager) {
+    this.tabManager = tabManager;
+    for (var i=0; i<this.childNodes.length; i++)
+        this.childNodes[i].setTabManager(tabManager);
+}
