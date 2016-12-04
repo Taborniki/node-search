@@ -5,32 +5,15 @@ var offset;
 var update = true;
 var images = [];
 var rootNode;
+var tabManager;
+var mainTree;
 
 $(document).ready(function() {
     init();
 
     // NEED test
     $('#btnTestTab').on('click', function() {
-        console.log('clicked btn');
-        chrome.tabs.create({ url: 'http://terra.snellman.net' }, function(tab) {
-            // callback function
-            console.log(tab.id);
-
-            // wait for tab to load
-            chrome.tabs.onUpdated.addListener(function(tabId , info) {
-                if (tabId == tab.id && info.status == "complete") {
-                    // send message to hook link tags
-                    chrome.tabs.sendMessage(tab.id, 'attach-hook');
-                }
-            });
-        });
-    });
-
-    // NEED test
-    // listen for incoming messages
-    chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    	console.log(message);
-        console.log(sender);
+        tabManager.openPage('http://terra.snellman.net');
     });
 });
 
@@ -51,6 +34,13 @@ function init() {
     // ticker
     createjs.Ticker.addEventListener("tick", tick);
     createjs.Ticker.framerate = 60;
+
+    // create Tree
+    mainTree = new Tree(0,stage);
+
+    // create TabManager
+    tabManager = new TabManager(mainTree);
+    tabManager.initMessageListener(); 
 }
 
 function createTestTree() {
