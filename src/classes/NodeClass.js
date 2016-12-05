@@ -5,7 +5,6 @@ var DEFAULT_X_NODE_SPACING = 250;
 var DEFAULT_Y_NODE_SPACING = 130;
 
 function Node (parentNode, iconUrl, title, pageUrl) {
-    this.parentNode = parentNode;
     this.iconUrl = iconUrl;
     this.pageUrl = pageUrl;
     this.backgroundUrl = 'images/nodes/background.png';
@@ -18,9 +17,15 @@ function Node (parentNode, iconUrl, title, pageUrl) {
     this.stage = {};
     this.collapsed = false;
     this.hasParentNode = (parentNode !== 'none');
+    this.setParentNode(parentNode);
+    this.rod = 'none';
+}
+
+// sets the parent Node
+Node.prototype.setParentNode = function(parentNode) {
+    this.parentNode = parentNode;
     if (this.hasParentNode) {
         parentNode.addChild(this); // add as a child to the parent node
-        this.rod = new Rod(this.parentNode, this); // draw connecting rod
     }
 }
 
@@ -34,11 +39,7 @@ Node.prototype.assignStage = function(stageObject) {
     stageObject.addChild(this.contextMenu.visual);
     // add text to node
     stageObject.addChild(this.titleText.visual);
-    // create connecting rod with hostNode if it exists
-    if (this.hasParentNode) {
-        stageObject.addChild(this.rod.visual);
-        stageObject.setChildIndex(this.rod.visual,0); // send to back (z-index)
-    }
+
     // add childNodes to canvas
     for (var i=0; i<this.childNodes.length; i++)
         this.childNodes[i].assignStage(stageObject);
@@ -55,7 +56,6 @@ Node.prototype.removeChild = function(nodeToRemove) {
 		if (this.childNodes[i] == nodeToRemove) {
 			// remove item from subTrees
 			this.childNodes.splice(i,1);
-			// NEED childNodes[i].delete() of zo zodat hij ook visueel weg gaat
             this.setLocation(this.visual.x, this.visual.y); // force redrawing of childNodes
 		}
 	}
@@ -188,9 +188,18 @@ Node.prototype.setLocation = function(x,y) {
         this.childNodes[i].setLocation(x + box.positions[i].x, y + box.positions[i].y)
     }
 
-    // rod must be redrawing
-    if (this.hasParentNode)
+    // rod needs redrawing
+    if (this.hasParentNode) {
+        // draw connecting rod
+        if (this.rod != 'none')
+            this.stage.removeChild(this.rod.visual); // remove previous rod from stage
+
+        this.rod = new Rod(this.parentNode, this); // parentNode can be changed
+        this.stage.addChild(this.rod.visual);
+        this.stage.setChildIndex(this.rod.visual,0); // send to back (z-index)
         this.rod.draw();
+    }
+
 };
 // interrupts the rollout event
 Node.prototype.interruptRollout = function() {
@@ -297,22 +306,46 @@ Node.prototype.setTabManager = function(tabManager) {
         this.childNodes[i].setTabManager(tabManager);
 };
 
+// delete a node and its childnodes
 Node.prototype.delete = function() {
     // recursively delete subnodes
-    for (var i=0; i<this.childNodes.length; i++) {
-        this.childNodes[i].delete();
+    var numChildren = this.childNodes.length; // must be precomputed because it will change value
+    for (var i=0; i<numChildren; i++) {
+        this.childNodes[0].delete();
     }
 
-    // remove this node as a child of its parent node
     if (this.hasParentNode)
         this.parentNode.removeChild(this);
+
+    if (this.hasParentNode) {
+        this.stage.removeChild(this.rod.visual);
+    }
 
     // remove visual node from stage
     this.stage.removeChild(this.visual);
     this.stage.removeChild(this.titleText.visual);
     this.stage.removeChild(this.contextMenu.visual);
-    if (this.hasParentNode)
-        this.stage.removeChild(this.rod.visual);
+
+    this.reDraw();
 
     // NEED free memory for this object (gaat blijkbaar automatisch naar de garbage collector als er geen referenties meer zijn naar het object)
 };
+
+// delete a node, but not it's childnodes
+// the childnodes are attached to the this node's parent node
+Node.prototype.finish = function() {
+    var numChildren = this.childNodes.length; // has to be precomputed because this.childNodes.length will change during loop
+    for (var i=0; i<numChildren; i++) {
+        this.childNodes[0].setParentNode(this.parentNode); // not [i] because in each iteration an item is removed
+        this.removeChild(this.childNodes[0]);
+    }
+    this.delete();
+};
+
+// search tree to root node and strat redrawing from there
+Node.prototype.reDraw = function() {
+    if (this.hasParentNode)
+        this.parentNode.reDraw();
+    else
+        this.setLocation(this.visual.x, this.visual.y); // force redrawing of childNodes
+}

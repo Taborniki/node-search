@@ -99,7 +99,7 @@ ContextMenu.prototype.executeAction = function(action) {
     if (action == 'collapse')
         this.hostNode.collapseChildren(this.hostNode, true);
     else if (action == 'delete')
-        this.hostNode.delete(); 
+        this.hostNode.delete();
     else if (action == 'finish')
-        console.log('NEED');
+        this.hostNode.finish();
 };
