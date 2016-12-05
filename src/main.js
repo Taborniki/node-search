@@ -10,11 +10,6 @@ var tabManager;
 $(document).ready(function() {
     //init();
     init();
-
-    // NEED test
-    $('#btnTestTab').on('click', function() {
-        tabManager.openPage('http://terra.snellman.net');
-    });
 });
 
 
@@ -29,7 +24,7 @@ function init() {
 
     // NEED moet google worden + subNode(s) verwijderen
     rootNode = new Node('none','images/nodes/google.ico','Terra Home','http://terra.snellman.net');
-    var subNode1 = new Node(rootNode, 'images/nodes/wiki.ico','Help','http://terra.snellman.net/help');
+    var subNode1 = new Node(rootNode, 'images/nodes/wiki.ico','Help','http://terra.snellman.net/usage/');
     rootNode.setLocation(600,100); // NEED dynamisch tov grootte canvas
     rootNode.assignStage(stage); // add node to canvas
 

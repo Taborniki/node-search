@@ -3,19 +3,20 @@ var ROTATION_ANGLE_MENU = 30;
 var X_OFFSET_MENU = -85;
 var Y_OFFSET_MENU = -15;
 
-function ContextMenu (hostNode) {
+function ContextMenu (hostNode,actionList) {
     this.hostNode = hostNode;
-    this.visual = this.createVisual(['delete','collapse','target','arrow']);
+    this.actionList = actionList;
+    this.visual = this.createVisual();
 }
 
 // creates the visual html node
-ContextMenu.prototype.createVisual = function(menuItems) {
+ContextMenu.prototype.createVisual = function() {
     var container = new createjs.Container();
 
     // iterate menu items
-    for(var i=0; i<menuItems.length; i++) {
+    for(var i=0; i<this.actionList.length; i++) {
         var image = new Image();
-        image.src = 'images/menu/' + menuItems[i] + '.png';
+        image.src = 'images/menu/' + this.actionList[i] + '.png';
         var bitmap = new createjs.Bitmap(image);
         bitmap.visible = false;
 
@@ -39,10 +40,18 @@ ContextMenu.prototype.createVisual = function(menuItems) {
             backupThis.hostNode.launchRollout();
         });
 
-        bitmap.on("click", function(evt) {
-            // NEED different functions voor different children
-            backupThis.hostNode.collapseChildren(backupThis.hostNode, true);
-        });
+        // TODO closure troubles
+        // lees: https://developer.mozilla.org/en/docs/Web/JavaScript/Closures#Creating_closures_in_loops_A_common_mistake
+        // lees: http://stackoverflow.com/questions/111102/how-do-javascript-closures-work?rq=1
+        (function() {
+            var action = backupThis.actionList[i];
+            bitmap.on("click", function(evt) {
+                backupThis.executeAction(action);
+            });
+        })();
+
+        // set cursor to 'hand' on hoover
+        container.cursor = 'pointer';
 
         container.addChild(bitmap);
     }
@@ -81,4 +90,16 @@ ContextMenu.prototype.hide = function() {
         // animate disappearance
         // createjs.Tween.get(child, {loop: false}).to({rotation: 0}, 100).to({visible:false}, 100);
     }
+};
+
+// executes the action, triggered on click of a menu item
+// currently supported actions: collapse, delete, finish
+// nothing is done if the action is not supported
+ContextMenu.prototype.executeAction = function(action) {
+    if (action == 'collapse')
+        this.hostNode.collapseChildren(this.hostNode, true);
+    else if (action == 'delete')
+        this.hostNode.delete(); 
+    else if (action == 'finish')
+        console.log('NEED');
 };

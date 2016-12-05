@@ -12,7 +12,7 @@ function Node (parentNode, iconUrl, title, pageUrl) {
     this.title = title;
     this.visual = this.createVisual();
     this.childNodes = [];
-    this.contextMenu = new ContextMenu(this);
+    this.contextMenu = new ContextMenu(this,['delete','collapse','finish']);
     this.titleText = new NodeTitle(this);
     this.noRollout = false;
     this.stage = {};
@@ -141,6 +141,9 @@ Node.prototype.createVisual = function() {
     container.on("click", function(evt) {
         backupThis.tabManager.openPage(backupThis.pageUrl);
     });
+
+    // set cursor to 'hand' on hoover
+    container.cursor = 'pointer';
 
     return container;
 };
@@ -292,4 +295,24 @@ Node.prototype.setTabManager = function(tabManager) {
     this.tabManager = tabManager;
     for (var i=0; i<this.childNodes.length; i++)
         this.childNodes[i].setTabManager(tabManager);
-}
+};
+
+Node.prototype.delete = function() {
+    // recursively delete subnodes
+    for (var i=0; i<this.childNodes.length; i++) {
+        this.childNodes[i].delete();
+    }
+
+    // remove this node as a child of its parent node
+    if (this.hasParentNode)
+        this.parentNode.removeChild(this);
+
+    // remove visual node from stage
+    this.stage.removeChild(this.visual);
+    this.stage.removeChild(this.titleText.visual);
+    this.stage.removeChild(this.contextMenu.visual);
+    if (this.hasParentNode)
+        this.stage.removeChild(this.rod.visual);
+
+    // NEED free memory for this object (gaat blijkbaar automatisch naar de garbage collector als er geen referenties meer zijn naar het object)
+};
