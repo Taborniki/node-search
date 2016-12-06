@@ -9,6 +9,12 @@ function ContextMenu (hostNode,actionList) {
     this.visual = this.createVisual();
 }
 
+// updates the action list
+ContextMenu.prototype.updateActionList = function(newList) {
+    this.actionList = newList;
+    this.visual = this.createVisual();
+}
+
 // creates the visual html node
 ContextMenu.prototype.createVisual = function() {
     var container = new createjs.Container();
@@ -71,8 +77,8 @@ ContextMenu.prototype.show = function() {
         var child = allChildren[i];
         child.visible = true;
 
-        // animate
-        createjs.Tween.get(child, {loop: false}).to({rotation: i*ROTATION_ANGLE_MENU}, 100);
+        // animate, speed is depedent on number of nodes
+        createjs.Tween.get(child, {loop: false}).to({rotation: i*ROTATION_ANGLE_MENU}, 33*this.actionList.length);
     }
 };
 

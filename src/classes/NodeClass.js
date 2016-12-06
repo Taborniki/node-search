@@ -11,7 +11,8 @@ function Node (parentNode, iconUrl, title, pageUrl) {
     this.title = title;
     this.visual = this.createVisual();
     this.childNodes = [];
-    this.contextMenu = new ContextMenu(this,['delete','collapse','finish']);
+    this.validActions = ['delete','finish'];
+    this.contextMenu = new ContextMenu(this,this.validActions);
     this.titleText = new NodeTitle(this);
     this.noRollout = false;
     this.stage = {};
@@ -47,11 +48,26 @@ Node.prototype.assignStage = function(stageObject) {
 
 // adds a child node
 Node.prototype.addChild = function(childNode) {
+    // add collapse action
+    if (this.childNodes.length == 0) {
+        this.validActions.push('collapse');
+        this.contextMenu.updateActionList(this.validActions);
+    }
+
+    // add child node
     this.childNodes.push(childNode);
 };
 
 // removes a child node
 Node.prototype.removeChild = function(nodeToRemove) {
+    // remove collapse action
+    if (this.childNodes.length == 1) {
+        this.validActions.splice(this.validActions.indexOf('collapse'),1);
+        if (this.ContextMenu !== undefined) // if this node is being finished, this would cause an error
+            this.ContextMenu.updateActionList(this.validActions);
+    }
+
+    // remove child node
     for(var i=0; i<this.childNodes.length; i++) {
 		if (this.childNodes[i] == nodeToRemove) {
 			// remove item from subTrees
@@ -139,7 +155,8 @@ Node.prototype.createVisual = function() {
 
     // open page on click
     container.on("click", function(evt) {
-        backupThis.tabManager.openPage(backupThis.pageUrl);
+        console.log(backupThis.pageUrl);
+        backupThis.tabManager.openPage(backupThis.pageUrl,backupThis,backupThis.stage);
     });
 
     // set cursor to 'hand' on hoover
@@ -214,6 +231,7 @@ Node.prototype.launchRollout = function() {
 
 // collapses all the child nodes and their children...
 Node.prototype.collapseChildren = function(nodeToCollapseTo, isCollapseStart) {
+
     // will go recursively down the tree
     for(var i=0; i<this.childNodes.length; i++) {
         this.childNodes[i].collapseChildren(nodeToCollapseTo, false);
@@ -243,8 +261,6 @@ Node.prototype.collapseChildren = function(nodeToCollapseTo, isCollapseStart) {
         // set title text invisible
         this.titleText.visual.visible = false;
     }
-
-    // NEED remember old position to go back later -> NIET NODIG: je kunt gewoon opnieuw draw doen -> drawTree functie verplaatsen naar node ipv in main js
 }
 
 // gets the total children and grandchildren and grand grand .... recursively
