@@ -13,18 +13,28 @@ function attachHook(sender,sendResponse) {
 	// generate list of link (<a> tag) elements
 	aList = document.getElementsByTagName('a');
 
+	// handle link click
+	function handleLinkClick(event) {
+		// prevent link from opening
+		event.preventDefault();
+
+		// send message to extension with url to create a new node from
+		sendResponse({newNodeUrl : event.target.getAttribute('href')});
+
+		// remove eventlisteners to all
+		// a new event listener will be added later
+		// TODO beter is gewoon om de sendResponse functie up te daten en niet alle event listeners updaten
+		for(var i=0; i < aList.length; i++) {
+			aList[i].removeEventListener("click", handleLinkClick);
+		}
+
+		// show notification
+		toastr.success("Node added!");
+	}
+
 	// assign eventlisteners to all
 	for(var i=0; i < aList.length; i++) {
-		aList[i].addEventListener("click", function (event) {
-			// prevent link from opening
-			event.preventDefault();
-
-			// send message to extension with url to create a new node from
-			sendResponse({newNodeUrl : event.target.getAttribute('href')});
-
-			// show notification
-			toastr.success("Node added!");
-		});
+		aList[i].addEventListener("click", handleLinkClick);
 	}
 }
 

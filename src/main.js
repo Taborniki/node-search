@@ -12,7 +12,6 @@ $(document).ready(function() {
     init();
 });
 
-
 function init() {
     // create stage and point it to the canvas:
     canvas = document.getElementById("main-canvas");
@@ -25,16 +24,12 @@ function init() {
     // NEED moet google worden + subNode(s) verwijderen
     rootNode = new Node('none','images/nodes/google.ico','Terra Home','http://terra.snellman.net');
     var subNode1 = new Node(rootNode, 'images/nodes/wiki.ico','Help1','http://terra.snellman.net/usage/');
-    var subNode2 = new Node(subNode1, 'images/nodes/wiki.ico','Help2','http://terra.snellman.net/usage/');
-    var subNode3 = new Node(subNode1, 'images/nodes/wiki.ico','Help3','http://terra.snellman.net/usage/');
-    var subNode4 = new Node(subNode1, 'images/nodes/wiki.ico','Testpage','file:///home/nero/GIT/node-search/src/testpages/index.html');
 
     rootNode.assignStage(stage); // add node to canvas
     rootNode.setLocation(600,100); // NEED dynamisch tov grootte canvas
 
     // create TabManager
     tabManager = new TabManager(rootNode);
-    tabManager.initMessageListener();
 
     // ticker
     createjs.Ticker.addEventListener("tick", tick);

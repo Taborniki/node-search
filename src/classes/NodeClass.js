@@ -156,6 +156,7 @@ Node.prototype.createVisual = function() {
     // open page on click
     container.on("click", function(evt) {
         backupThis.tabManager.openPage(backupThis.pageUrl,backupThis,backupThis.stage);
+        backupThis.removeFocusAnimation();
     });
 
     // set cursor to 'hand' on hoover
