@@ -3,6 +3,7 @@
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if(message == 'attach-hook') {
 		attachHook(sender,sendResponse);
+		setToastrOptions();
 		return true; // indicates asynchronous callback
 	}
 });
@@ -12,8 +13,6 @@ function attachHook(sender,sendResponse) {
 	// generate list of link (<a> tag) elements
 	aList = document.getElementsByTagName('a');
 
-	console.log(sendResponse);
-
 	// assign eventlisteners to all
 	for(var i=0; i < aList.length; i++) {
 		aList[i].addEventListener("click", function (event) {
@@ -22,8 +21,30 @@ function attachHook(sender,sendResponse) {
 
 			// send message to extension with url to create a new node from
 			sendResponse({newNodeUrl : event.target.getAttribute('href')});
+
+			// show notification
+			toastr.success("Node added!");
 		});
 	}
+}
 
-	console.log('hooked attached');
+// sets the toastr.js options
+function setToastrOptions() {
+	toastr.options = {
+	  "closeButton": false,
+	  "debug": false,
+	  "newestOnTop": false,
+	  "progressBar": false,
+	  "positionClass": "toast-top-right",
+	  "preventDuplicates": false,
+	  "onclick": null,
+	  "showDuration": "300",
+	  "hideDuration": "1000",
+	  "timeOut": "5000",
+	  "extendedTimeOut": "1000",
+	  "showEasing": "swing",
+	  "hideEasing": "linear",
+	  "showMethod": "fadeIn",
+	  "hideMethod": "fadeOut"
+	}
 }
