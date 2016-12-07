@@ -8,10 +8,14 @@ function NodeTitle (hostNode) {
 
 // creates the visual html node
 NodeTitle.prototype.createVisual = function() {
-    // NEED text.maxWidth = inter node distance stellen;
-    // NEED text string opsplitsen in stukjes van n characters door '\n' ertussen te voegen
-    // NEED fiddle https://jsfiddle.net/JTqvJ/302/
-    var visual = new createjs.Text(this.hostNode.title, "20px Arial", "#545454");
+
+    // max number of characters TODO dependent on maxWidth (see below)
+    var titleToPrint = this.hostNode.title.substring(0,30);
+    // wrap lines TODO dependent on maxWidth (see below)
+    titleToPrint = titleToPrint.replace(/(.{15})/g, "$1\n");
+    var visual = new createjs.Text(titleToPrint, "20px Arial", "#545454");
+    // limit text width to 60% of internode space
+    visual.maxWidth = DEFAULT_X_NODE_SPACING*0.6; // TODO moet ook megaan met reduceFactor bij Node
     return visual;
 };
 
