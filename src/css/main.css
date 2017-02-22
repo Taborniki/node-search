@@ -8,6 +8,11 @@
     src: url('../fonts/Roboto-Light.ttf');
 }
 
+@font-face {
+  font-family: 'concert-one';
+  src: url('../fonts/ConcertOne-Regular.ttf');
+}
+
 .node {
   cursor: pointer;
 }
@@ -35,4 +40,44 @@
   fill: none;
   stroke: red;
   stroke-width: 3px;
+}
+
+/* top and logo layout  */
+body {
+    margin: 0;
+}
+
+.heading {
+    background-color: white; /* #f7f7f7 */
+    height: 80px;
+}
+
+.heading img {
+    float:left;
+    width: 80px;
+    overflow:hidden;
+    margin-left: 50px;
+    margin-top: 5px;
+}
+
+.heading p {
+    float:left;
+    width:75%;
+    overflow:hidden;
+    margin-left: 40px;
+    margin-top: 5px;
+    margin-bottom: 0px;
+    padding-bottom: 15px;
+    color: rgb(84, 84, 84);
+    font-size: 60px;
+    font-family:concert-one;
+}
+
+.heading p strong {
+    color: #0094FF;
+    font-weight: normal;
+}
+
+canvas {
+    background-color: #ededed;
 }
