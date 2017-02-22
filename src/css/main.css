@@ -9,8 +9,8 @@
 }
 
 @font-face {
-  font-family: 'concert-one';
-  src: url('../fonts/ConcertOne-Regular.ttf');
+  font-family: 'sansita';
+  src: url('../fonts/Sansita-Regular.ttf');
 }
 
 .node {
@@ -70,12 +70,13 @@ body {
     padding-bottom: 15px;
     color: rgb(84, 84, 84);
     font-size: 60px;
-    font-family:concert-one;
+    font-family:sansita;
 }
 
 .heading p strong {
     color: #0094FF;
     font-weight: normal;
+    font-family:sansita;
 }
 
 canvas {
