@@ -1,0 +1,36 @@
+body {
+    margin: 0;
+}
+
+.heading {
+    background-color: white; /* #f7f7f7 */
+    height: 80px;
+}
+
+.heading img {
+    float:left;
+    width: 80px;
+    overflow:hidden;
+    margin-left: 50px;
+    margin-top: 15px;
+}
+
+.heading p {
+    float:left;
+    width:75%;
+    overflow:hidden;
+    margin-left: 40px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    color: rgb(84, 84, 84);
+    font-size: 60;
+}
+
+.heading p strong {
+    color: #0094FF;
+    font-weight: normal;
+}
+
+canvas {
+    background-color: #ededed;
+}

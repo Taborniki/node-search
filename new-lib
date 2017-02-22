@@ -1,0 +1,25 @@
+OPTIES
+------
+
+x	1. py script buchheim -> js 
+x 	2. non-layered-tidy-trees java -> js
+
+NEED
+ - buchheim
+ - flexible node size
+	
+	3. cola.js? -> http://marvl.infotech.monash.edu/webcola/ | https://github.com/tgdwyer/WebCola/blob/master/WebCola/examples/smallnonoverlappinggraph.html (example)
+	4. d3.js
+		- met cola
+		- met flextree branch -> https://github.com/Klortho/d3-flextree | http://klortho.github.io/d3-flextree/ examples
+		- raw
+
+NOOT three.js 3D visuals
+NOOT d3 examples
+	- http://vizuly.io/product/weighted-tree/?demo=d3js
+!	- http://bl.ocks.org/d3noob/8375092
+	- http://mbostock.github.io/d3/talk/20111018/tree.html
+	- http://mbostock.github.io/d3/talk/20111018/treemap.html
+! 	- http://bl.ocks.org/robschmuecker/7880033 
+	- http://charts.animateddata.co.uk/datavistree/
+	- http://bl.ocks.org/4ndr01d3/727175afbdc58c3626b8

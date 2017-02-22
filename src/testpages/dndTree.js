@@ -26,10 +26,8 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 
 
-//. NEED-ADAPT naar d3 v4
-
 // Get JSON data
-treeJSON = d3.json("flare-small.json", function(error, treeData) {
+treeJSON = d3.json("flare.json", function(error, treeData) {
 
     // Calculate total nodes, max label length
     var totalNodes = 0;
@@ -42,7 +40,7 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
     var panBoundary = 20; // Within 20px from edges will pan when dragging.
     // Misc. variables
     var i = 0;
-    var duration = 300; // [ms] animation durations
+    var duration = 750;
     var root;
 
     // size of the diagram
@@ -59,6 +57,7 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
         });
 
     // A recursive helper function for performing some setup by walking through all nodes
+
     function visit(parent, visitFn, childrenFn) {
         if (!parent) return;
 
@@ -81,6 +80,17 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
     }, function(d) {
         return d.children && d.children.length > 0 ? d.children : null;
     });
+
+
+    // sort the tree according to the node names
+
+    function sortTree() {
+        tree.sort(function(a, b) {
+            return b.name.toLowerCase() < a.name.toLowerCase() ? 1 : -1;
+        });
+    }
+    // Sort the tree initially incase the JSON isn't in a sorted order.
+    sortTree();
 
     // TODO: Pan function, can be better implemented.
 
@@ -119,6 +129,48 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
     // define the zoomListener which calls the zoom function on the "zoom" event constrained within the scaleExtents
     var zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
 
+    function initiateDrag(d, domNode) {
+        draggingNode = d;
+        d3.select(domNode).select('.ghostCircle').attr('pointer-events', 'none');
+        d3.selectAll('.ghostCircle').attr('class', 'ghostCircle show');
+        d3.select(domNode).attr('class', 'node activeDrag');
+
+        svgGroup.selectAll("g.node").sort(function(a, b) { // select the parent and sort the path's
+            if (a.id != draggingNode.id) return 1; // a is not the hovered element, send "a" to the back
+            else return -1; // a is the hovered element, bring "a" to the front
+        });
+        // if nodes has children, remove the links and nodes
+        if (nodes.length > 1) {
+            // remove link paths
+            links = tree.links(nodes);
+            nodePaths = svgGroup.selectAll("path.link")
+                .data(links, function(d) {
+                    return d.target.id;
+                }).remove();
+            // remove child nodes
+            nodesExit = svgGroup.selectAll("g.node")
+                .data(nodes, function(d) {
+                    return d.id;
+                }).filter(function(d, i) {
+                    if (d.id == draggingNode.id) {
+                        return false;
+                    }
+                    return true;
+                }).remove();
+        }
+
+        // remove parent link
+        parentLink = tree.links(tree.nodes(draggingNode.parent));
+        svgGroup.selectAll('path.link').filter(function(d, i) {
+            if (d.target.id == draggingNode.id) {
+                return true;
+            }
+            return false;
+        }).remove();
+
+        dragStarted = null;
+    }
+
     // define the baseSvg, attaching a class for styling and the zoomListener
     var baseSvg = d3.select("#tree-container").append("svg")
         .attr("width", viewerWidth)
@@ -127,6 +179,97 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
         .call(zoomListener);
 
 
+    // Define the drag listeners for drag/drop behaviour of nodes.
+    dragListener = d3.behavior.drag()
+        .on("dragstart", function(d) {
+            if (d == root) {
+                return;
+            }
+            dragStarted = true;
+            nodes = tree.nodes(d);
+            d3.event.sourceEvent.stopPropagation();
+            // it's important that we suppress the mouseover event on the node being dragged. Otherwise it will absorb the mouseover event and the underlying node will not detect it d3.select(this).attr('pointer-events', 'none');
+        })
+        .on("drag", function(d) {
+            if (d == root) {
+                return;
+            }
+            if (dragStarted) {
+                domNode = this;
+                initiateDrag(d, domNode);
+            }
+
+            // get coords of mouseEvent relative to svg container to allow for panning
+            relCoords = d3.mouse($('svg').get(0));
+            if (relCoords[0] < panBoundary) {
+                panTimer = true;
+                pan(this, 'left');
+            } else if (relCoords[0] > ($('svg').width() - panBoundary)) {
+
+                panTimer = true;
+                pan(this, 'right');
+            } else if (relCoords[1] < panBoundary) {
+                panTimer = true;
+                pan(this, 'up');
+            } else if (relCoords[1] > ($('svg').height() - panBoundary)) {
+                panTimer = true;
+                pan(this, 'down');
+            } else {
+                try {
+                    clearTimeout(panTimer);
+                } catch (e) {
+
+                }
+            }
+
+            d.x0 += d3.event.dy;
+            d.y0 += d3.event.dx;
+            var node = d3.select(this);
+            node.attr("transform", "translate(" + d.y0 + "," + d.x0 + ")");
+            updateTempConnector();
+        }).on("dragend", function(d) {
+            if (d == root) {
+                return;
+            }
+            domNode = this;
+            if (selectedNode) {
+                // now remove the element from the parent, and insert it into the new elements children
+                var index = draggingNode.parent.children.indexOf(draggingNode);
+                if (index > -1) {
+                    draggingNode.parent.children.splice(index, 1);
+                }
+                if (typeof selectedNode.children !== 'undefined' || typeof selectedNode._children !== 'undefined') {
+                    if (typeof selectedNode.children !== 'undefined') {
+                        selectedNode.children.push(draggingNode);
+                    } else {
+                        selectedNode._children.push(draggingNode);
+                    }
+                } else {
+                    selectedNode.children = [];
+                    selectedNode.children.push(draggingNode);
+                }
+                // Make sure that the node being added to is expanded so user can see added node is correctly moved
+                expand(selectedNode);
+                sortTree();
+                endDrag();
+            } else {
+                endDrag();
+            }
+        });
+
+    function endDrag() {
+        selectedNode = null;
+        d3.selectAll('.ghostCircle').attr('class', 'ghostCircle');
+        d3.select(domNode).attr('class', 'node');
+        // now restore the mouseover event or we won't be able to drag a 2nd time
+        d3.select(domNode).select('.ghostCircle').attr('pointer-events', '');
+        updateTempConnector();
+        if (draggingNode !== null) {
+            update(root);
+            centerNode(draggingNode);
+            draggingNode = null;
+        }
+    }
 
     // Helper functions for collapsing and expanding nodes.
 
@@ -200,103 +343,30 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
 
     // Toggle children function
 
-    function toggleChildren(d, nodeHtml) {
-        if (d.children) { //. has not yet collapsed children
-            updateChildCountIndicator(nodeHtml, d);
-            d._children = d.children; //. collapse them
+    function toggleChildren(d) {
+        if (d.children) {
+            d._children = d.children;
             d.children = null;
-        } else if (d._children) { //. has collapsed children
-            d.children = d._children; //. expand them
+        } else if (d._children) {
+            d.children = d._children;
             d._children = null;
-
-            //. for all children, updated there labels if they are collapsed themselves
-            for (var i=0; i<d.children.length; i++) {
-                var nodeData = d.children[i];
-                var nodeHtml = document.getElementById("#node-" + nodeData.id);
-                updateChildCountIndicator(nodeHtml, nodeData);
-            }
         }
-        //. nothing happens is node has no children
         return d;
     }
 
-    //. updates the number displayed in the child count indicator
-
-    function updateChildCountIndicator(nodeHtml, nodeData) {
-        //. get number of children recursively
-        var numChildren = countChildrenRecursively(nodeData);
-
-        //. convert to string
-        if (numChildren<100)
-            var numChildrenText = numChildren.toString()
-        else
-            var numChildrenText = "99+";
-
-        d3.select(nodeHtml).selectAll("text.node-child-counter-element").text(numChildrenText);
-    }
-
-    //. counts the number of children of a node recursively
-    //. the current node is excluded from the count
-
-    function countChildrenRecursively (nodeData) {
-        var numChildren = 0;
-
-        if (nodeData.children) {
-            //. not hidden children
-            for (var i=0; i<nodeData.children.length; i++) {
-                numChildren += 1 + countChildrenRecursively(nodeData.children[i]);
-            }
-        }
-        else if (nodeData._children) {
-            //. hidden children
-            for (var i=0; i<nodeData._children.length; i++) {
-                numChildren += 1 + countChildrenRecursively(nodeData._children[i]);
-            }
-        }
-
-        return numChildren;
-    }
-
     // Toggle children on click.
-    function clickToggle(d,nodeDOM) {
+
+    function click(d) {
         if (d3.event.defaultPrevented) return; // click suppressed
-        d = toggleChildren(d,nodeDOM);
+        d = toggleChildren(d);
         update(d);
-        centerNode(d); // NEED remove?
-    }
-
-    //. delete node, removes children too!
-    function deleteNode(nodeData) {
-        if (d3.event.defaultPrevented) return; // click suppressed
-        // remove node from the list of children in it's parent node
-        var index = nodeData.parent.children.indexOf(nodeData);
-        nodeData.parent.children.splice(index, 1);
-        update(nodeData.parent);
-    }
-
-    //. finish node
-    function finishNode(nodeData) {
-        if (d3.event.defaultPrevented) return; // click suppressed
-        // move children to parent node NEED ook _children doen voor als node zou collapsed zijn
-        var index = nodeData.parent.children.indexOf(nodeData);
-        for (var i = nodeData.children.length-1; i >= 0; i--) {
-            nodeData.parent.children.splice(index, 0, nodeData.children[i]);
-        }
-        // delete current node
-        deleteNode(nodeData);
-    }
-
-    //. open node website in new tab
-    function openNodeInTab(nodeData) {
-        console.log('Hi there'); // NEED edit
+        centerNode(d);
     }
 
     function update(source) {
         // Compute the new height, function counts total children of root node and sets tree height accordingly.
         // This prevents the layout looking squashed when new nodes are made visible or looking sparse when nodes are removed
         // This makes the layout more consistent.
-
-        //. counts the number of nodes on each level and stores the result in levelWidth e.g. [1 4 3 2] (1 top root node)
         var levelWidth = [1];
         var childCount = function(level, n) {
 
@@ -310,9 +380,7 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
             }
         };
         childCount(0, root);
-
-
-        var newHeight = d3.max(levelWidth) * 120; // 120 pixels per line NEED-ADAPT reverse height and width + variable, not always 120
+        var newHeight = d3.max(levelWidth) * 25; // 25 pixels per line
         tree = tree.size([newHeight, viewerWidth]);
 
         // Compute the new tree layout.
@@ -321,7 +389,6 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
 
         // Set widths between levels based on maxLabelLength.
         nodes.forEach(function(d) {
-            //. d (=node) .depth = level diepte (integer), 0 voor root node
             d.y = (d.depth * (maxLabelLength * 10)); //maxLabelLength * 10px
             // alternatively to keep a fixed scale one can set a fixed depth per level
             // Normalize for fixed-depth by commenting out below line
@@ -332,167 +399,56 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
         node = svgGroup.selectAll("g.node")
             .data(nodes, function(d) {
                 return d.id || (d.id = ++i);
-            })
-            .attr("id", function(d) { //. add "node-<id>" as html element id
-                return "node-" + d.id;
-            })
-            .on("mouseover", function(d) { // TAG event-listeners-not-triggered
-                var node = d3.select(this); // the node, this refers to source of event
-                var menuItems = node.select("g.menu").selectAll("g.menu-item");
-
-                // show menu items
-                menuItems.transition().duration(duration)
-                    .attr("transform",function(d,i){
-                        return "rotate("+40*i+") translate(-45,-30)"; // NEED animate
-                    });
-            })
-            .on("mouseout", function(node) {
-                var node = d3.select(this); // the node, this refers to source of event
-                var menuItems = node.select("g.menu").selectAll("g.menu-item");
-
-                // hide menu items
-                menuItems.transition().duration(duration)
-                    .attr("transform",function(d,i){
-                        return "translate(+45,+30) rotate("-40*i+")"; // NEED animate
-                    });
-                // TODO enhance menu accessibility with setTimeout(function(){}, 500); adn a status variable
             });
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("g")
-        .attr("class", "node")
-        .attr("transform", function(d) {
-            return "translate(" + source.y0 + "," + source.x0 + ")";
-        });
-
-        // NEED variabel maken
-        var MENU_ITEMS = ['finish','delete','collapse'];
-
-        // menu group containing the menu items
-        var menuGroup = nodeEnter.append("g")
-            .attr("class", "menu")
-            .attr("x", -30);
-
-        // menu items
-        var menuItems = menuGroup.selectAll("g")
-            .data(function (d) {
-                var dataOut = [];
-                for (var i=0; i<MENU_ITEMS.length; i++) {
-                    dataOut.push({'name' : MENU_ITEMS[i], 'nodeData' : d})
-                }
-                return dataOut;
+            .call(dragListener)
+            .attr("class", "node")
+            .attr("transform", function(d) {
+                return "translate(" + source.y0 + "," + source.x0 + ")";
             })
-            .enter()
-            .append("g")
-            .attr('name', function(d) {
-                return d.name;
-            })
-            .attr("class", "menu-item");
+            .on('click', click);
 
-        // add blank circles to menu item
-        menuItems.append("circle")
-            .attr("r", 15)
-            .style("fill", "white");
-
-        // number of 'pixels' of height and width
-        var MENU_ICON_SIDE = 30;
-
-        // add icons to menu items
-        menuItems.append("image")
-            .attr('xlink:href', function(d) {
-                return "../images/menu/"+d.name+".png";
-            })
-            .attr("width", MENU_ICON_SIDE)
-            .attr("height", MENU_ICON_SIDE)
-            .attr("x", -MENU_ICON_SIDE/2)
-            .attr("y", -MENU_ICON_SIDE/2);
-
-        // add click event to collapse menu item
-        d3.selectAll("[name=collapse]")
-        .on('click',function (d) {
-            clickToggle(d.nodeData,d3.select(d3.select(this).node().parentNode).node().parentNode);
-        });
-
-        // add click event to delete menu item
-        d3.selectAll("[name=delete]")
-        .on('click',function (d) {
-            deleteNode(d.nodeData);
-        });
-
-        // add click event to delete menu item
-        d3.selectAll("[name=finish]")
-        .on('click',function (d) {
-            finishNode(d.nodeData);
-        });
-
-        // center circle containing the main part of the node
-        var centerGroup = nodeEnter.append("g")
-            .attr("class", "center-group")
-            .attr("x", -30)
-            .on('click', function(d) {
-                openNodeInTab(d);
+        nodeEnter.append("circle")
+            .attr('class', 'nodeCircle')
+            .attr("r", 0)
+            .style("fill", function(d) {
+                return d._children ? "lightsteelblue" : "#fff";
             });
 
-        //. added 'shadow' circle in grey
-        centerGroup.append("circle")
-            .attr('class', 'nodeMoonShadow')
-            .attr("r", 30)
-            .style("fill", "#8B8B8B") //. grey
-            .attr("cx", 2) //. nasty! cx = circle-x instead of x (e.g. text)
-            .attr("cy", 2);
-
-        centerGroup.append("circle")
-            .attr('class', 'nodeCircle')
-            .attr("r", 30)
-            .style("fill", "#fff");
-
-        // number of 'pixels' of height and width
-        var IMAGE_SIDE = 40;
-
-        //. node favicon
-        centerGroup.append('image')
-            .attr('xlink:href',"../images/nodes/wiki.ico")
-            .attr("width", IMAGE_SIDE)
-            .attr("height", IMAGE_SIDE)
-            .attr("x", -IMAGE_SIDE/2)
-            .attr("y", -IMAGE_SIDE/2);
-
-        //. blue round for child count indicator
-        centerGroup.append("circle")
-            .attr('class', 'node-child-counter-element')
-            .attr("r", 14)
-            .style("fill", "#0094ff") //. blue
-            .attr("cx", 25)
-            .attr("cy", 25);
-
-        //. node title
-        centerGroup.append("text")
+        nodeEnter.append("text")
             .attr("x", function(d) {
-                return d.children || d._children ? -40 : 40;
+                return d.children || d._children ? -10 : 10;
             })
             .attr("dy", ".35em")
             .attr('class', 'nodeText')
             .attr("text-anchor", function(d) {
-                return d.children || d._children ? "end" : "start"; //. alignes text left or right (dependent if text is positioned left or right of node)
+                return d.children || d._children ? "end" : "start";
             })
             .text(function(d) {
                 return d.name;
             })
             .style("fill-opacity", 0);
 
-        //. child count indicator text
-        centerGroup.append("text") //. NEED ++ maken als meer dan 99
-            .attr('class', 'node-child-counter-element')
-            .attr("x", 25)
-            .attr("y", 30)
-            .attr("text-anchor", "middle") //. alignes text in center
-            .text("0") //. NEED adjust +1 when addChild function is used
-            .style("fill","white");
+        // phantom node to give us mouseover in a radius around it
+        nodeEnter.append("circle")
+            .attr('class', 'ghostCircle')
+            .attr("r", 30)
+            .attr("opacity", 0.2) // change this to zero to hide the target area
+        .style("fill", "red")
+            .attr('pointer-events', 'mouseover')
+            .on("mouseover", function(node) {
+                overCircle(node);
+            })
+            .on("mouseout", function(node) {
+                outCircle(node);
+            });
 
         // Update the text to reflect whether node has children or not.
         node.select('text')
             .attr("x", function(d) {
-                return d.children || d._children ? -50 : 50; //. nodes with children have text to the left side of the node circle NEED-ADAPT remove
+                return d.children || d._children ? -10 : 10;
             })
             .attr("text-anchor", function(d) {
                 return d.children || d._children ? "end" : "start";
@@ -501,10 +457,11 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
                 return d.name;
             });
 
-        // show or hide node-child-counter-elements depending on whether it has children and is collapsed
-        node.selectAll(".node-child-counter-element")
-            .style("visibility", function(d) {
-                return d._children ? "visible" : "hidden";
+        // Change the circle fill depending on whether it has children and is collapsed
+        node.select("circle.nodeCircle")
+            .attr("r", 4.5)
+            .style("fill", function(d) {
+                return d._children ? "lightsteelblue" : "#fff";
             });
 
         // Transition nodes to their new position.
@@ -589,6 +546,5 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
 
     // Layout the tree initially and center on the root node.
     update(root);
-    update(root); // TODO remove, but otherwise events listeners (@event-listeners-not-triggered) are not triggered from start
     centerNode(root);
 });
