@@ -5,8 +5,9 @@
         "children": [{
             "name": "cluster",
             "children": [{
-                "name": "AgglomerativeCluster",
-                "size": 3938
+                "name": "Terra",
+                "size": 3938,
+                "url": "http://terra.snellman.net"
             }, {
                 "name": "CommunityStructure",
                 "size": 3812

@@ -58,6 +58,9 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
             return [d.y, d.x];
         });
 
+    // create tabManager object
+    var tabManager = new TabManager();
+
     // A recursive helper function for performing some setup by walking through all nodes
     function visit(parent, visitFn, childrenFn) {
         if (!parent) return;
@@ -288,7 +291,35 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
 
     //. open node website in new tab
     function openNodeInTab(nodeData) {
-        console.log('Hi there'); // NEED edit
+        tabManager.openPage(nodeData.url,nodeData).then(function(returnData) {
+            addNode(nodeData, returnData.title, returnData.url, returnData.iconUrl);
+        });
+    }
+
+    // add a node to the tree
+    function addNode(parentNode, title, url, iconUrl) {
+        console.log('NEED aanvullen')
+
+        // NEED nog oplossen voor indien collapsed : _children
+        if (!('children' in parentNode)) {
+            parentNode.children = [];
+        }
+        parentNode.children.push({
+            'name' : title,
+            'url' : url
+        });
+        update(root);
+        update(root);
+
+        /*
+        d.children.push({
+            "name": "NeroCluster",
+            "size": 3938,
+            "url": "http://terra.snellman.net"
+        });
+        update(root);
+        NEED eerst checken of _children wel bestaat of children
+        */
     }
 
     function update(source) {
@@ -451,7 +482,7 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
 
         //. node favicon
         centerGroup.append('image')
-            .attr('xlink:href',"../images/nodes/wiki.ico")
+            .attr('xlink:href',"../images/nodes/favicon.ico")
             .attr("width", IMAGE_SIDE)
             .attr("height", IMAGE_SIDE)
             .attr("x", -IMAGE_SIDE/2)
