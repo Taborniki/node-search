@@ -4,7 +4,7 @@ var DEFAULT_ICON_URL = 'images/nodes/favicon.ico';
 function TabManager () {} // empty constructor
 
 // open a webpage in a new page with a hook attached
-TabManager.prototype.openPage = function(targetUrl, sourceNode) {
+TabManager.prototype.openPage = function(targetUrl, sourceNode, addNodeFct) {
 	var promise =  new Promise(function(resolve, reject) {
 		chrome.tabs.create({ url : targetUrl}, function(tab) {
 			// wait for tab to load
@@ -20,11 +20,7 @@ TabManager.prototype.openPage = function(targetUrl, sourceNode) {
 								// fetch icon url and title of the page
 								var iconUrl = getIconUrl(response.newNodeUrl).then(function(iconUrl) {
 									getTitle(response.newNodeUrl).then(function(title) {
-										resolve({
-											'iconUrl' : iconUrl,
-											'title' : title,
-											'url' : response.newNodeUrl
-										})
+										addNodeFct(sourceNode, title, response.newNodeUrl, iconUrl);
 									});
 								});
 							}

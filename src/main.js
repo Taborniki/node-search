@@ -291,9 +291,7 @@ treeJSON = d3.json("flare-tiny.json", function(error, treeData) {
 
     //. open node website in new tab
     function openNodeInTab(nodeData) {
-        tabManager.openPage(nodeData.url,nodeData).then(function(returnData) {
-            addNode(nodeData, returnData.title, returnData.url, returnData.iconUrl);
-        });
+        tabManager.openPage(nodeData.url,nodeData,addNode);
     }
 
     // add a node to the tree
@@ -303,7 +301,6 @@ treeJSON = d3.json("flare-tiny.json", function(error, treeData) {
             parentNode.children = [];
         }
 
-        console.log(title);
         if (title == '<No title>')
             title = ''
 
@@ -485,7 +482,6 @@ treeJSON = d3.json("flare-tiny.json", function(error, treeData) {
         //. node favicon
         centerGroup.append('image')
             .attr('xlink:href', function(d) {
-                console.log(d); // NEED remove
                 return d.iconUrl;
             })
             .attr("width", IMAGE_SIDE)
