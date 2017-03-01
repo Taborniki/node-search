@@ -1,0 +1,21 @@
+{
+    "name": "flare",
+    "children": [{
+        "name": "cluster",
+        "children": [{
+            "name": "Terra",
+            "size": 3938,
+            "url": "http://terra.snellman.net",
+            "iconUrl": "../images/nodes/favicon.ico"
+        }, {
+            "name": "CommunityStructure",
+            "size": 3812,
+            "url": "http://terra.snellman.net",
+            "iconUrl": "../images/nodes/favicon.ico"
+        }],
+        "url": "http://terra.snellman.net",
+        "iconUrl": "../images/nodes/favicon.ico"
+    }],
+    "url": "http://terra.snellman.net",
+    "iconUrl": "../images/nodes/favicon.ico"
+}

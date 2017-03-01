@@ -29,7 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 //. NEED-ADAPT naar d3 v4
 
 // Get JSON data
-treeJSON = d3.json("flare-small.json", function(error, treeData) {
+treeJSON = d3.json("flare-tiny.json", function(error, treeData) {
 
     // Calculate total nodes, max label length
     var totalNodes = 0;
@@ -298,28 +298,30 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
 
     // add a node to the tree
     function addNode(parentNode, title, url, iconUrl) {
-        console.log('NEED aanvullen')
-
         // NEED nog oplossen voor indien collapsed : _children
         if (!('children' in parentNode)) {
             parentNode.children = [];
         }
-        parentNode.children.push({
-            'name' : title,
-            'url' : url
-        });
-        update(root);
-        update(root);
 
-        /*
-        d.children.push({
-            "name": "NeroCluster",
-            "size": 3938,
-            "url": "http://terra.snellman.net"
+        console.log(title);
+        if (title == '<No title>')
+            title = ''
+
+        parentNode.children.push({
+            'name' : cropTitle(parentNode, title),
+            'url' : url,
+            'iconUrl' : iconUrl,
+            'fullTitle' : title
         });
         update(root);
-        NEED eerst checken of _children wel bestaat of children
-        */
+        update(root);
+    }
+
+    // reduce title to less words
+    // NEED smarter cropping
+    function cropTitle(parentNode, title) {
+        // return first word of the title
+        return title.split(/[,\-\s|]/)[0];
     }
 
     function update(source) {
@@ -482,7 +484,10 @@ treeJSON = d3.json("flare-small.json", function(error, treeData) {
 
         //. node favicon
         centerGroup.append('image')
-            .attr('xlink:href',"../images/nodes/favicon.ico")
+            .attr('xlink:href', function(d) {
+                console.log(d); // NEED remove
+                return d.iconUrl;
+            })
             .attr("width", IMAGE_SIDE)
             .attr("height", IMAGE_SIDE)
             .attr("x", -IMAGE_SIDE/2)
