@@ -38,6 +38,17 @@ function attachHook(sender,sendResponse) {
 	}
 }
 
+// adds the 'add node option' to the context menu
+function configureContextMenu() {
+	chrome.contextMenus.create({"title": 'add to NodeSearch', "contexts":["link"],
+                                       "onclick": doAction()});
+}
+
+function doAction() {
+	// NEED remove
+	alert('some action please!');
+}
+
 // sets the toastr.js options
 function setToastrOptions() {
 	toastr.options = {

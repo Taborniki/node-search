@@ -20,7 +20,12 @@
 		"css": ["lib/toastr.min.css"]
 	}],
 
+	"background": {
+	    "scripts": ["background.js"]
+	},
+
 	"permissions": [
-		"tabs"
+		"tabs",
+		"contextMenus"
 	]
 }

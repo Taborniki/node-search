@@ -7,6 +7,9 @@ function TabManager () {} // empty constructor
 TabManager.prototype.openPage = function(targetUrl, sourceNode, addNodeFct) {
 	var promise =  new Promise(function(resolve, reject) {
 		chrome.tabs.create({ url : targetUrl}, function(tab) {
+			// add tab id to list of open tabs TODO ook weer verwijderen wanneer tab geclosed wordt (wss geen issue voorlopig omdat id's toch niet hergebruikt worden)
+			chrome.extension.getBackgroundPage().addOpenTab(tab.id);
+
 			// wait for tab to load
 			chrome.tabs.onUpdated.addListener(function(tabId , info) {
 				if (tabId == tab.id && info.status == "complete") {
