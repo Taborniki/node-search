@@ -31,6 +31,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 // Get JSON data
 treeJSON = d3.json("flare-tiny.json", function(error, treeData) {
 
+    console.log(treeData); 
+
     // Calculate total nodes, max label length
     var totalNodes = 0;
     var maxLabelLength = 0;

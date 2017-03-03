@@ -69,3 +69,26 @@ function addActiveTabEventListener () {
 		}
 	}
 }
+
+// check for launch-extension message
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	if(message.type == 'launch-extension') {
+		launchExtension(message);
+		return true; // indicates asynchronous callback
+	}
+});
+
+// launches the extension
+function launchExtension(message) { // NEED send message, NEED add current tab to open tab ids!
+	chrome.tabs.create({ url: "main.html"}, function (createdTab){
+        setExtensionTabId(createdTab.id);
+
+		// send message to add root node
+		chrome.tabs.sendMessage(createdTab.id, {
+			'type' : 'create-rootnode',
+			'name' : message.name,
+			'url' : message.url,
+			'iconUrl' : message.iconUrl
+		});
+    });
+}
