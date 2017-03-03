@@ -19,8 +19,18 @@ function configureContextMenu() {
 	});
 }
 
-function handleContextClick() {
-	alert(EXTENSION_TAB_ID);
+function handleContextClick(info, tab) {
+	if (EXTENSION_TAB_ID != -1) {
+
+		var message = {
+				'type' : 'create-node',
+				'sourceTabId' : tab.id,
+				'targetUrl' : info.linkUrl
+		};
+
+		chrome.tabs.sendMessage(EXTENSION_TAB_ID, message);
+	}
+	// TODO error message if -1
 }
 
 function setExtensionTabId (id) {
