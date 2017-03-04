@@ -28,11 +28,22 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 
 //. NEED-ADAPT naar d3 v4
 
-// Get JSON data
-treeJSON = d3.json("flare-tiny.json", function(error, treeData) {
+// check for create-rootnode message
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	if(message.type == 'create-rootnode') {
+        var rootNode = {
+            'name' : message.name,
+            'url' : message.url,
+            'iconUrl' : message.iconUrl,
+            'fullTitle' : message.name
+        };
+		drawTree(rootNode);
+		return true; // indicates asynchronous callback
+	}
+});
 
-    console.log(treeData); 
-
+function drawTree(treeData) {
+    
     // Calculate total nodes, max label length
     var totalNodes = 0;
     var maxLabelLength = 0;
@@ -625,4 +636,4 @@ treeJSON = d3.json("flare-tiny.json", function(error, treeData) {
     update(root);
     update(root); // TODO remove, but otherwise events listeners (@event-listeners-not-triggered) are not triggered from start
     centerNode(root);
-});
+}

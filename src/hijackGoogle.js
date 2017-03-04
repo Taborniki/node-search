@@ -24,7 +24,7 @@ if (thisPageIsGoogle) {
 			  // send message to background page to launch extension
 			  chrome.runtime.sendMessage({
 				  'type' : 'launch-extension',
-				  'name' : $('#lst-ib').value, // input google search text
+				  'name' : $('#lst-ib').val(), // input google search text
 				  'url' : window.location.href,
 				  'iconUrl' : "https://www.google.be/favicon.ico" // NEED lokaal opslaan?
 			  });
@@ -32,6 +32,18 @@ if (thisPageIsGoogle) {
 	      clearInterval(checkExist);
 	   }
 	}, 100); // check every 100ms
+}
+
+// extract link from <a> tag on mousedown
+var elements = document.getElementsByTagName('a');
+for(var i = 0, len = elements.length; i < len; i++) {
+    elements[i].onmousedown = function (event) {
+		// send message to background to register last mousedown link
+		chrome.runtime.sendMessage({
+			'type' : 'mousedown-google',
+			'url' : $(event.srcElement).attr('data-href')
+		});
+    }
 }
 
 /* to inject before item with id="gs_st0"

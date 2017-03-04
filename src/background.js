@@ -8,6 +8,7 @@ var EXTENSION_TAB_ID = -1;
 var openTabIds = [];
 var activeTabId;
 var contextMenuId;
+var lastGoogleLink = "";
 
 // adds the 'add node option' to the context menu
 function configureContextMenu() {
@@ -22,10 +23,22 @@ function configureContextMenu() {
 function handleContextClick(info, tab) {
 	if (EXTENSION_TAB_ID != -1) {
 
+		// refactor link if source is google search
+		var url = new URL(tab.url);
+	  	var domain = url.hostname;
+		var googleRegex = /(www.|)(google.)[a-zA-Z0-9]+/;
+		var domainIsGoogle = googleRegex.test(domain);
+		if (domainIsGoogle) {
+			var targetUrl = lastGoogleLink;
+		}
+		else {
+			var targetUrl = info.linkUrl;
+		}
+
 		var message = {
 				'type' : 'create-node',
 				'sourceTabId' : tab.id,
-				'targetUrl' : info.linkUrl
+				'targetUrl' : targetUrl
 		};
 
 		chrome.tabs.sendMessage(EXTENSION_TAB_ID, message);
@@ -70,11 +83,14 @@ function addActiveTabEventListener () {
 	}
 }
 
-// check for launch-extension message
+// check for launch-extension OR mousedown-google message
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	if(message.type == 'launch-extension') {
+	if (message.type == 'launch-extension') {
 		launchExtension(message);
 		return true; // indicates asynchronous callback
+	}
+	else if (message.type == 'mousedown-google') {
+		lastGoogleLink = message.url;
 	}
 });
 
@@ -83,12 +99,16 @@ function launchExtension(message) { // NEED send message, NEED add current tab t
 	chrome.tabs.create({ url: "main.html"}, function (createdTab){
         setExtensionTabId(createdTab.id);
 
-		// send message to add root node
-		chrome.tabs.sendMessage(createdTab.id, {
-			'type' : 'create-rootnode',
-			'name' : message.name,
-			'url' : message.url,
-			'iconUrl' : message.iconUrl
+		chrome.tabs.onUpdated.addListener(function(tabId , info) {
+			if (tabId == createdTab.id && info.status == "complete") {
+				// send message to add root node
+				chrome.tabs.sendMessage(createdTab.id, {
+					'type' : 'create-rootnode',
+					'name' : message.name,
+					'url' : message.url,
+					'iconUrl' : message.iconUrl
+				});
+			}
 		});
     });
 }
