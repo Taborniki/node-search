@@ -1,30 +1,20 @@
 var DEFAULT_ICON_URL = 'images/nodes/favicon.ico';
 
+var tabNodeMap = {};
+var addNodeFunction;
+
 // constructor
 function TabManager () {} // empty constructor
 
 // open a webpage in a new page with a hook attached
-TabManager.prototype.openPage = function(targetUrl, sourceNode, addNodeFct) {
+TabManager.prototype.openPage = function(targetUrl, sourceNode) {
 	var promise =  new Promise(function(resolve, reject) {
 		chrome.tabs.create({ url : targetUrl}, function(tab) {
 			// add tab id to list of open tabs TODO ook weer verwijderen wanneer tab geclosed wordt (wss geen issue voorlopig omdat id's toch niet hergebruikt worden)
 			chrome.extension.getBackgroundPage().addOpenTab(tab.id);
 
-			// wait for messages from background.js because contextMenu is fired
-			chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	        	if(message.type == 'create-node') {
-	        		// NEED afwerken
-					if (tab.id == message.sourceTabId) { // the message concerns this tab
-						// fetch icon url and title of the page NEED rewrite to avoid duplicate code
-						var iconUrl = getIconUrl(message.targetUrl).then(function(iconUrl) {
-							getTitle(message.targetUrl).then(function(title) {
-								addNodeFct(sourceNode, title, message.targetUrl, iconUrl);
-							});
-						});
-					}
-	        		return true; // indicates asynchronous callback
-	        	}
-	        });
+			// register node with tab id
+			tabNodeMap[tab.id] = sourceNode;
 
 			// wait for tab to load
 			chrome.tabs.onUpdated.addListener(function(tabId , info) {
@@ -56,6 +46,21 @@ TabManager.prototype.openPage = function(targetUrl, sourceNode, addNodeFct) {
 	return promise;
 
 };
+
+// wait for messages from background.js because contextMenu is fired
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	if(message.type == 'create-node') {
+		if (message.sourceTabId in tabNodeMap) { // the message concerns a registered tab
+			// fetch icon url and title of the page NEED rewrite to avoid duplicate code
+			var iconUrl = getIconUrl(message.targetUrl).then(function(iconUrl) {
+				getTitle(message.targetUrl).then(function(title) {
+					addNodeFunction(tabNodeMap[message.sourceTabId], title, message.targetUrl, iconUrl);
+				});
+			});
+		}
+		return true; // indicates asynchronous callback
+	}
+});
 
 // returns the title of a web page
 function getTitle(url) {

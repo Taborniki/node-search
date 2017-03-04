@@ -37,13 +37,17 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             'iconUrl' : message.iconUrl,
             'fullTitle' : message.name
         };
+
+        // add this root node to the map of TabManagerClass
+        tabNodeMap[message.googleInitTabId] = rootNode;
+
 		drawTree(rootNode);
 		return true; // indicates asynchronous callback
 	}
 });
 
 function drawTree(treeData) {
-    
+
     // Calculate total nodes, max label length
     var totalNodes = 0;
     var maxLabelLength = 0;
@@ -326,6 +330,9 @@ function drawTree(treeData) {
         update(root);
         update(root);
     }
+
+    // TODO brakke oplossing zodat deze functie ook bereikbaar is in TabManager
+    addNodeFunction = addNode;
 
     // reduce title to less words
     // NEED smarter cropping

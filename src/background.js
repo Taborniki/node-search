@@ -1,5 +1,3 @@
-// this page has the sole purpose of managing the right click context menu
-
 // NEED onload event of zo?
 configureContextMenu();
 addActiveTabEventListener();
@@ -86,7 +84,12 @@ function addActiveTabEventListener () {
 // check for launch-extension OR mousedown-google message
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (message.type == 'launch-extension') {
-		launchExtension(message);
+		launchExtension(message, sender.tab.id);
+
+		// register google search tab as open extension tab
+		var senderTabId = sender.tab.id;
+		addOpenTab(senderTabId);
+
 		return true; // indicates asynchronous callback
 	}
 	else if (message.type == 'mousedown-google') {
@@ -95,7 +98,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 // launches the extension
-function launchExtension(message) { // NEED send message, NEED add current tab to open tab ids!
+function launchExtension(message, googleInitTabId) {
 	chrome.tabs.create({ url: "main.html"}, function (createdTab){
         setExtensionTabId(createdTab.id);
 
@@ -106,7 +109,8 @@ function launchExtension(message) { // NEED send message, NEED add current tab t
 					'type' : 'create-rootnode',
 					'name' : message.name,
 					'url' : message.url,
-					'iconUrl' : message.iconUrl
+					'iconUrl' : message.iconUrl,
+					'googleInitTabId' : googleInitTabId
 				});
 			}
 		});
