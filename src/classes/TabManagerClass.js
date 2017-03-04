@@ -17,6 +17,7 @@ TabManager.prototype.openPage = function(targetUrl, sourceNode) {
 			tabNodeMap[tab.id] = sourceNode;
 
 			// wait for tab to load
+			/* TODO alles van attach-hook weg doen
 			chrome.tabs.onUpdated.addListener(function(tabId , info) {
 				if (tabId == tab.id && info.status == "complete") {
 					function sendMessageToTab(tabId,sourceNode) {
@@ -39,7 +40,7 @@ TabManager.prototype.openPage = function(targetUrl, sourceNode) {
 					// send the first message
 					sendMessageToTab(tab.id,sourceNode);
 				}
-			});
+			}); */
 		});
 	});
 
