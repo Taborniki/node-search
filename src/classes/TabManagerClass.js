@@ -68,7 +68,12 @@ function getTitle(url) {
 	var promise =  new Promise(function(resolve, reject) {
 		$.get(url)
 			.done(function(data) {
-				resolve(data.match(/<title[^>]*>([^<]+)<\/title>/)[1]);
+				try {
+					resolve(data.match(/<title[^>]*>([^<]+)<\/title>/)[1]);
+				}
+				catch(err) {
+				    resolve('<No title>');
+				}
 			})
 			.fail(function() {
 				resolve('<No title>');

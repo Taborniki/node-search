@@ -20,7 +20,7 @@ if (thisPageIsGoogle) {
 		  var voiceSearch = document.getElementById('gs_st0');
 	 	  voiceSearch.parentNode.insertBefore(nodeButton, voiceSearch);
 		  // add event listener
-		  $('#node-search-icon').click(function() {
+		  $('#node-search-icon').off().click(function() { // TODO .off() is a temporary workaround to prevent multiple extension tabs spawning
 			  // send message to background page to launch extension
 			  chrome.runtime.sendMessage({
 				  'type' : 'launch-extension',
@@ -35,16 +35,23 @@ if (thisPageIsGoogle) {
 }
 
 // extract link from <a> tag on mousedown
-var elements = document.getElementsByTagName('a');
-for(var i = 0, len = elements.length; i < len; i++) {
-    elements[i].onmousedown = function (event) {
-		// send message to background to register last mousedown link
-		chrome.runtime.sendMessage({
-			'type' : 'mousedown-google',
-			'url' : $(event.srcElement).attr('data-href')
-		});
-    }
-}
+var checkExist2 = setInterval(function() {
+   if ($('#navcnt').length) { // google search results loaded
+	var elements = document.getElementsByTagName('a');
+	for(var i = 0, len = elements.length; i < len; i++) {
+		elements[i].onmousedown = function (event) {
+			// send message to background to register last mousedown link
+			chrome.runtime.sendMessage({
+				'type' : 'mousedown-google',
+				'url' : $(event.srcElement).attr('data-href')
+			});
+		}
+	}
+
+	  // clear interval
+      clearInterval(checkExist2);
+   }
+}, 100); // check every 100ms
 
 /* to inject before item with id="gs_st0"
 
